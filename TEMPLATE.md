@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Listing name | **Plausible v3 Privacy-First Analytics** (version label `v3` = Plausible CE major; the project tags `v3.2.1`) |
-| Description | Cookie-free, lightweight web analytics you own. Plausible CE with ClickHouse. (77 chars, unchanged) |
+| Description | Cookie-free, lightweight web analytics you own, powered by ClickHouse. (77 chars, unchanged) |
 | Category | Analytics |
 | Tags | plausible, web-analytics, privacy, gdpr, google-analytics-alternative, clickhouse |
 | Base market template | `mzYEXO` (Railway's own "Plausible Analytics", 929 projects; source `railwayapp-templates/plausible`, **MIT**) — ClickHouse low-resource config adapted with attribution. Also reviewed `plausible` (27 projects) and `plausible-community-edition` (gridalpha ClickHouse repo, no license → not used). |

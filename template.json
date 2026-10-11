@@ -1,6 +1,6 @@
 {
   "name": "Plausible v3 Privacy-First Analytics",
-  "description": "Cookie-free, lightweight web analytics you own. Plausible CE with ClickHouse.",
+  "description": "Cookie-free, lightweight web analytics you own, powered by ClickHouse.",
   "category": "Analytics",
   "tags": [
     "plausible",
