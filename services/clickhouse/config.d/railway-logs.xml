@@ -1,0 +1,37 @@
+<!--
+  Logging for Plausible's ClickHouse on Railway.
+  Based on plausible/community-edition clickhouse/logs.xml (MIT) and
+  railwayapp-templates/plausible ch-config.xml (MIT).
+  Console only (Railway collects stdout); unused system log tables disabled;
+  query_log kept for 30 days for troubleshooting.
+-->
+<clickhouse>
+    <logger>
+        <level>warning</level>
+        <console>1</console>
+        <log remove="1"/>
+        <errorlog remove="1"/>
+    </logger>
+
+    <query_log replace="1">
+        <database>system</database>
+        <table>query_log</table>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <engine>
+            ENGINE = MergeTree
+            PARTITION BY event_date
+            ORDER BY (event_time)
+            TTL event_date + interval 30 day
+            SETTINGS ttl_only_drop_parts=1
+        </engine>
+    </query_log>
+
+    <metric_log remove="1"/>
+    <asynchronous_metric_log remove="1"/>
+    <query_thread_log remove="1"/>
+    <text_log remove="1"/>
+    <trace_log remove="1"/>
+    <session_log remove="1"/>
+    <part_log remove="1"/>
+    <processors_profile_log remove="1"/>
+</clickhouse>

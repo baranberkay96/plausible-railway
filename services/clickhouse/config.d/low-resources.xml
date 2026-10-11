@@ -1,0 +1,15 @@
+<!--
+  Server settings for a small ClickHouse (see "Using less than 16GB of RAM":
+  https://clickhouse.com/docs/en/operations/tips).
+  mark_cache_size from plausible/community-edition low-resources.xml (MIT);
+  merge_tree limits from railwayapp-templates/plausible ch-config.xml (MIT).
+-->
+<clickhouse>
+    <mark_cache_size>524288000</mark_cache_size>
+
+    <merge_tree>
+        <merge_max_block_size>2048</merge_max_block_size>
+        <max_bytes_to_merge_at_max_space_in_pool>1073741824</max_bytes_to_merge_at_max_space_in_pool>
+        <number_of_free_entries_in_pool_to_lower_max_size_of_merge>0</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
+    </merge_tree>
+</clickhouse>

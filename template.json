@@ -1,0 +1,209 @@
+{
+  "name": "Plausible v3 Privacy-First Analytics",
+  "description": "Cookie-free, lightweight web analytics you own. Plausible CE with ClickHouse.",
+  "category": "Analytics",
+  "tags": [
+    "plausible",
+    "web-analytics",
+    "privacy",
+    "gdpr",
+    "google-analytics-alternative",
+    "clickhouse"
+  ],
+  "services": {
+    "plausible": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/plausible.svg",
+      "source": {
+        "image": "ghcr.io/plausible/community-edition:v3.2.1"
+      },
+      "startCommand": "/bin/sh -c 'i=0; until wget -q -O /dev/null \"http://${CLICKHOUSE_HOST}:8123/ping\"; do i=$((i+1)); [ \"$i\" -ge 100 ] && echo \"ClickHouse not reachable\" && exit 1; echo \"waiting for ClickHouse ($i)\"; sleep 3; done; /entrypoint.sh db createdb && /entrypoint.sh db migrate && exec /entrypoint.sh run'",
+      "healthcheckPath": "/api/health",
+      "healthcheckTimeout": 600,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "publicDomain": true,
+      "targetPort": 8000,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "PORT": {
+          "defaultValue": "8000",
+          "description": "HTTP port (Plausible reads PORT when HTTP_PORT is unset).",
+          "required": false
+        },
+        "BASE_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public URL of this instance. Change when you add a custom domain.",
+          "required": true
+        },
+        "SECRET_KEY_BASE": {
+          "defaultValue": "${{secret(86, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Signs sessions/cookies (>= 64 bytes). Never change after first boot.",
+          "required": true
+        },
+        "TOTP_VAULT_KEY": {
+          "defaultValue": "${{secret(43, \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\")}}=",
+          "description": "Base64 32-byte key that encrypts 2FA secrets at rest. Never change after first boot.",
+          "required": true
+        },
+        "DATABASE_URL": {
+          "defaultValue": "${{Postgres.DATABASE_URL}}",
+          "description": "Postgres (users, sites, settings).",
+          "required": true
+        },
+        "CLICKHOUSE_DATABASE_URL": {
+          "defaultValue": "http://${{clickhouse.CLICKHOUSE_USER}}:${{clickhouse.CLICKHOUSE_PASSWORD}}@${{clickhouse.RAILWAY_PRIVATE_DOMAIN}}:8123/${{clickhouse.CLICKHOUSE_DB}}",
+          "description": "ClickHouse (events, sessions) over the private network.",
+          "required": true
+        },
+        "CLICKHOUSE_HOST": {
+          "defaultValue": "${{clickhouse.RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Used by the start command to wait for ClickHouse.",
+          "required": false
+        },
+        "DISABLE_REGISTRATION": {
+          "defaultValue": "invite_only",
+          "description": "true | false | invite_only. CE default: the first account can register, afterwards invite-only.",
+          "required": false
+        },
+        "ENABLE_EMAIL_VERIFICATION": {
+          "defaultValue": "false",
+          "description": "Require email verification for new users (needs working email).",
+          "required": false
+        }
+      }
+    },
+    "clickhouse": {
+      "icon": "https://devicons.railway.com/i/clickhouse.svg",
+      "source": {
+        "repo": "baranberkay96/plausible-railway",
+        "rootDirectory": "/services/clickhouse"
+      },
+      "startCommand": null,
+      "healthcheckPath": "/ping",
+      "healthcheckTimeout": 300,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/clickhouse"
+      },
+      "variables": {
+        "PORT": {
+          "defaultValue": "8123",
+          "description": "ClickHouse HTTP port; Railway probes /ping.",
+          "required": false
+        },
+        "CLICKHOUSE_DB": {
+          "defaultValue": "plausible_events_db",
+          "description": "Events database created on first boot.",
+          "required": true
+        },
+        "CLICKHOUSE_USER": {
+          "defaultValue": "plausible",
+          "description": "User created by the official entrypoint (replaces the passwordless default user).",
+          "required": true
+        },
+        "CLICKHOUSE_PASSWORD": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Password for CLICKHOUSE_USER (alphanumeric, URL-safe).",
+          "required": true
+        },
+        "CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT": {
+          "defaultValue": "0",
+          "description": "SQL user management off; Plausible does not need it.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Time ClickHouse gets to flush and stop cleanly.",
+          "required": false
+        }
+      }
+    },
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "startCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database will be initialized",
+          "required": true
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Railway Private Domain Name.",
+          "required": true
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": true
+        },
+        "PGUSER": {
+          "defaultValue": "${{ POSTGRES_USER }}",
+          "description": "Required variable for Data panel",
+          "required": true
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Required variable for the data panel.",
+          "required": true
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Required variable for Data panel",
+          "required": true
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "railway",
+          "description": "Default database created when image is started.",
+          "required": true
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "URL to connect to Postgres database.",
+          "required": true
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "User to connect to Postgres DB",
+          "required": true
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "SSL certificate expiry in days.",
+          "required": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Password to connect to DB",
+          "required": true
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow Postgres to cleanly shut down",
+          "required": true
+        }
+      }
+    }
+  },
+  "buckets": []
+}
