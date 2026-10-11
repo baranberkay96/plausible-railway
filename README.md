@@ -1,5 +1,7 @@
 # Deploy and Host Plausible with Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/plausible-v3-privacy-first-analytics)
+
 Plausible Community Edition is open-source, cookie-free web analytics: a lightweight script, a one-page dashboard and no personal data collection. This community template runs Plausible CE v3 on Railway with Postgres for accounts and ClickHouse for event data, tuned to stay small and inexpensive.
 
 ## About Hosting Plausible
